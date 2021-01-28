@@ -6,9 +6,12 @@ Class definition of YOLO_v3 style detection model on image and video
 import colorsys
 import os
 from timeit import default_timer as timer
+import tensorflow as tf
 
 import numpy as np
-from keras import backend as K
+# from keras import backend as K
+import tensorflow as tf
+import tensorflow.compat.v1.keras.backend as K
 from keras.models import load_model
 from keras.layers import Input
 from PIL import Image, ImageFont, ImageDraw
@@ -16,13 +19,14 @@ from PIL import Image, ImageFont, ImageDraw
 from yolo3.model import yolo_eval, yolo_body, tiny_yolo_body
 from yolo3.utils import letterbox_image
 import os
-from keras.utils import multi_gpu_model
+from keras.utils.multi_gpu_utils import multi_gpu_model
+tf.compat.v1.disable_eager_execution()
 
 class YOLO(object):
     _defaults = {
-        "model_path": 'model_data/yolo.h5',
-        "anchors_path": 'model_data/yolo_anchors.txt',
-        "classes_path": 'model_data/coco_classes.txt',
+        "model_path": 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/yolo.h5',
+        "anchors_path": 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/yolo_anchors.txt',
+        "classes_path": 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/coco_classes.txt',
         "score" : 0.3,
         "iou" : 0.45,
         "model_image_size" : (416, 416),
@@ -42,6 +46,7 @@ class YOLO(object):
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
         self.sess = K.get_session()
+        # self.sess = tf.compat.v1.keras.backend.get_session()
         self.boxes, self.scores, self.classes = self.generate()
 
     def _get_class(self):
@@ -126,7 +131,7 @@ class YOLO(object):
 
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
 
-        font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
+        font = ImageFont.truetype(font='f:/1_code/python/keras-YOLOv3-mobilenet/font/FiraMono-Medium.otf',
                     size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
         thickness = (image.size[0] + image.size[1]) // 300
 
