@@ -3,7 +3,12 @@ Retrain the YOLO model for your own dataset.
 """
 
 import numpy as np
-import keras.backend as K
+import tensorflow as tf
+# import tensorflow.compat.v1.keras.backend as K
+# from keras import backend as K
+from tensorflow.python.keras import backend as K
+# tf.compat.v1.disable_eager_execution()
+
 from keras.layers import Input, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
@@ -12,13 +17,18 @@ import os
 from yolo3.model_Mobilenet import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_loss
 from yolo3.utils import get_random_data
 
+# os.chdir(r'f:/1_code/python/keras-YOLOv3-mobilenet/voc07')
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def _main():
-    train_path = 'car_train.txt'
-    val_path = 'car_val.txt'
-    log_dir = 'logs/carMobilenet/001_Mobilenet_finetune/'
-    classes_path = 'model_data/car_classes.txt'
-    anchors_path = 'model_data/yolo_anchors.txt'
+    # train_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/voc07/2007_train.txt'
+    # val_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/voc07/2007_val.txt'
+    # log_dir = 'f:/1_code/python/keras-YOLOv3-mobilenet/voc07/logs/001_Mobilenet_finetune/'
+    # classes_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/voc_classes.txt'
+    train_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/2007_train.txt'
+    val_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/2007_val.txt'
+    log_dir = 'f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/logs/001_Mobilenet_finetune/'
+    classes_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/coco_classes.txt'
+    anchors_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/yolo_anchors.txt'
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
     anchors = get_anchors(anchors_path)
@@ -31,7 +41,8 @@ def _main():
             freeze_body=2)
     else:
         model = create_model(input_shape, anchors, num_classes,load_pretrained=False,
-                             weights_path='logs/carMobilenet/000_Mobilenet_finetune/trained_weights_final.h5',
+                             # weights_path='f:/1_code/python/keras-YOLOv3-mobilenet/voc07/logs/000_Mobilenet_finetune/trained_weights_final.h5',
+                             weights_path='f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/logs/000_Mobilenet_finetune/trained_weights_final.h5',
             freeze_body=2) # make sure you know what you freeze
 
     logging = TensorBoard(log_dir=log_dir)
@@ -51,7 +62,7 @@ def _main():
     t_lines = t_lines[:8000]
     num_train = len(t_lines)
     # with open(val_path) as v_f:
-    #     v_lines = v_f.readlines()
+        # v_lines = v_f.readlines()
     # np.random.seed(10010)
     # np.random.shuffle(v_lines)
     # np.random.seed(None)
@@ -66,7 +77,7 @@ def _main():
 
         batch_size = 16
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
-        model.fit_generator(data_generator_wrapper(t_lines, batch_size, input_shape, anchors, num_classes),
+        model.fit(data_generator_wrapper(t_lines, batch_size, input_shape, anchors, num_classes),
                 steps_per_epoch=max(1, num_train//batch_size),
                 validation_data=data_generator_wrapper(v_lines, batch_size, input_shape, anchors, num_classes),
                 validation_steps=max(1, num_val//batch_size),
@@ -84,7 +95,7 @@ def _main():
         model.compile(optimizer=Adam(lr=1e-4), loss={'yolo_loss': lambda y_true, y_pred: y_pred}) # recompile to apply the change
         batch_size = 16 # note that more GPU memory is required after unfreezing the body
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
-        model.fit_generator(data_generator_wrapper(t_lines, batch_size, input_shape, anchors, num_classes),
+        model.fit(data_generator_wrapper(t_lines, batch_size, input_shape, anchors, num_classes),
             steps_per_epoch=max(1, num_train//batch_size),
             validation_data=data_generator_wrapper(v_lines, batch_size, input_shape, anchors, num_classes),
             validation_steps=max(1, num_val//batch_size),
@@ -112,7 +123,8 @@ def get_anchors(anchors_path):
 
 
 def create_model(input_shape, anchors, num_classes, load_pretrained=False, freeze_body=2,
-            weights_path='model_data/yolo_weights.h5'):
+            # weights_path='f:/1_code/python/keras-YOLOv3-mobilenet/voc07/model_data/yolo_weights.h5'):
+            weights_path='f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/model_data/yolo_weights.h5'):
     '''create the training model'''
     K.clear_session() # get a new session
     image_input = Input(shape=(None, None, 3))

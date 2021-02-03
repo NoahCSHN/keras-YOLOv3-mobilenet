@@ -6,10 +6,14 @@ Run a YOLO_v3 style detection model on test images.
 
 import colorsys
 import os
+# import show
 from timeit import default_timer as timer
-import tensorflow as tf
 import numpy as np
-from keras import backend as K
+
+import tensorflow as tf
+import tensorflow.compat.v1.keras.backend as K
+tf.compat.v1.disable_eager_execution()
+
 from keras.models import load_model
 from keras.layers import Input
 from PIL import Image, ImageFont, ImageDraw
@@ -23,9 +27,12 @@ gpu_num=1
 
 class YOLO(object):
     def __init__(self):
-        self.model_path = 'logs/carMobilenet/001_Mobilenet_finetune/trained_weights_final.h5' # model path or trained weights path
-        self.anchors_path = 'model_data/yolo_anchors.txt'
-        self.classes_path = 'model_data/car_classes.txt'
+        # self.model_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/voc07/logs/001_Mobilenet_finetune/trained_weights_final.h5' # model path or trained weights path
+        # self.anchors_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/yolo_anchors.txt'
+        # self.classes_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/voc_classes.txt'
+        self.model_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/logs/001_Mobilenet_finetune/trained_weights_final.h5' # model path or trained weights path
+        self.anchors_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/yolo_anchors.txt'
+        self.classes_path = 'f:/1_code/python/keras-YOLOv3-mobilenet/model_data/coco_classes.txt'
         self.score = 0.3
         self.iou = 0.45
         self.class_names = self._get_class()
@@ -149,7 +156,7 @@ class YOLO(object):
             y2 = min(image.size[1], np.floor(y2 + 0.5).astype('float32'))
             x2 = min(image.size[0], np.floor(x2 + 0.5).astype('float32'))
             # print(label, (x1, y1), (x2, y2))
-            bbox = dict([("score",str(score)),("x1",str(x1)),("y1", str(y1)),("x2", str(x2)),("y2", str(y2))])
+            bbox = dict([("score",str(score)),("class",predicted_class),("x1",str(x1)),("y1", str(y1)),("x2", str(x2)),("y2", str(y2))])
             rects.append(bbox)
 
         #     if y1 - label_size[1] >= 0:
@@ -219,6 +226,7 @@ def detect_video(yolo, video_path, output_path=""):
 
 
 def detect_img(yolo):
+    import json
     while True:
         img = input('Input image filename:')
         try:
@@ -227,8 +235,12 @@ def detect_img(yolo):
             print('Open Error! Try again!')
             continue
         else:
+            # print(image)
             r_image = yolo.detect_image(image)
-            r_image.show()
+            print(r_image)
+            json_name = 'F:/1_code/python/keras-YOLOv3-mobilenet/pic/annotation_Mobilenet_YOLOv3.json'
+            with open(json_name,'w') as dump_f:
+                dump_f.write(json.dumps(r_image,indent=6))
     yolo.close_session()
 
 def detect_test_draw(yolo,json_name,test_pic):
@@ -292,13 +304,14 @@ def car_detect(yolo,mainFolder = '/home/wenwen/Viewnyx/FrameImages/'):
     fold_list = range(1, 15)
 
     for i in fold_list:
-        foldname = mainFolder+'video'+str(i)
+        # foldname = mainFolder+'video'+str(i)
+        foldname = mainFolder
         list = os.listdir(foldname)  # 列出文件夹下所有的目录与文件
         json_all = {}
-        json_f = open('car/'+'annotation_{}_YOLOv3.json'.format('video'+str(i)),'w')
+        json_f = open(mainFolder+'/'+'annotation_{}_YOLOv3.json'.format('video'+str(i)),'w')
         for i in range(0, len(list)):
             name,ext = os.path.splitext(list[i])
-            if ext=='.jpg':
+            if ext=='.jpg' or ext=='.jpeg':
                 print(list[i])
                 json_pic = {}
                 annotation = []
@@ -328,6 +341,7 @@ def car_detect(yolo,mainFolder = '/home/wenwen/Viewnyx/FrameImages/'):
 
 
 if __name__ == '__main__':
-    car_detect(YOLO())
+    # car_detect(YOLO(),mainFolder=r'F:/1_code/python/keras-YOLOv3-mobilenet/pic')
+    detect_img(YOLO())
     #detect_test(YOLO(), json_name='../mrsub/mrsub_test.json',test_out_json='mobilenet_train_bw_test_mrsub.json', data_dst='../mrsub/')
     #detect_test_draw(YOLO(), json_name='dataset/brainwash/test_boxes.json',test_pic='./mobilenet_test/')

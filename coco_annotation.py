@@ -4,14 +4,14 @@ from collections import defaultdict
 name_box_id = defaultdict(list)
 id_name = dict()
 f = open(
-    "mscoco2017/annotations/instances_train2017.json",
+    r"F:\2_doc\7_datasets\COCO2017\annotations\instances_train2017.json",
     encoding='utf-8')
 data = json.load(f)
 
 annotations = data['annotations']
 for ant in annotations:
     id = ant['image_id']
-    name = 'mscoco2017/train2017/%012d.jpg' % id
+    name = r'F:\2_doc\7_datasets\COCO2017\train2017\%012d.jpg' % id
     cat = ant['category_id']
 
     if cat >= 1 and cat <= 11:
@@ -35,7 +35,7 @@ for ant in annotations:
 
     name_box_id[name].append([ant['bbox'], cat])
 
-f = open('train.txt', 'w')
+f = open(r'f:/1_code/python/keras-YOLOv3-mobilenet/coco2017/2007_train.txt', 'w')
 for key in name_box_id.keys():
     f.write(key)
     box_infos = name_box_id[key]
